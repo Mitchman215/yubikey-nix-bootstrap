@@ -9,6 +9,7 @@ echo ""
 echo "--- Phase 1: Configuring GPG agent ---"
 
 mkdir -p "$GNUPG_DIR"
+chmod 700 "$GNUPG_DIR"
 
 append_if_missing() {
   local file="$1"
@@ -75,7 +76,8 @@ echo ""
 echo "--- Phase 4: Tethering YubiKey ---"
 read -rp "Plug in your YubiKey and press Enter..."
 
-if ! gpg --card-status > /dev/null 2>&1; then
+gpgconf --kill scdaemon
+if ! gpg --card-status; then
   echo "Error: Could not detect YubiKey. Make sure it's plugged in."
   return 1
 fi
