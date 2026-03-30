@@ -20,3 +20,4 @@ After bootstrap completes, you're in an interactive shell with everything config
 
 - [Nix](https://nixos.org/download)
 - A provisioned YubiKey (see the main dotfiles repo for provisioning docs)
+- On NixOS, `services.pcscd.enable = true;` must be set in your configuration (run `sudo nixos-rebuild switch` after adding it)

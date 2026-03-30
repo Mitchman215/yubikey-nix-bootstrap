@@ -30,6 +30,7 @@ fi
 
 append_if_missing "$GNUPG_DIR/gpg-agent.conf" "pinentry-program $PINENTRY_PATH"
 append_if_missing "$GNUPG_DIR/gpg-agent.conf" "enable-ssh-support"
+append_if_missing "$GNUPG_DIR/scdaemon.conf" "disable-ccid"
 
 echo ""
 
@@ -75,6 +76,15 @@ echo ""
 echo "--- Phase 4: Tethering YubiKey ---"
 read -rp "Plug in your YubiKey and press Enter..."
 
+# Ensure pcscd is running (required for scdaemon with disable-ccid)
+if ! systemctl is-active --quiet pcscd 2>/dev/null; then
+  echo "  pcscd is not running. Attempting to start it..."
+  if ! sudo systemctl start pcscd 2>/dev/null; then
+    echo "Error: pcscd service is not available."
+    echo "On NixOS, add 'services.pcscd.enable = true;' to your configuration and run 'sudo nixos-rebuild switch'."
+    return 1
+  fi
+fi
 gpgconf --kill scdaemon
 if ! gpg --card-status; then
   echo "Error: Could not detect YubiKey. Make sure it's plugged in."
