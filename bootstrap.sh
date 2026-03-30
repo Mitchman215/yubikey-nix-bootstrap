@@ -113,7 +113,7 @@ echo "  Checking ssh-add -l..."
 ssh-add -l 2>&1 | head -3
 echo ""
 
-echo "  Testing SSH to GitHub..."
+echo "  Testing SSH to GitHub (touch YubiKey when it blinks)..."
 ssh -T git@github.com 2>&1 || true
 echo ""
 
