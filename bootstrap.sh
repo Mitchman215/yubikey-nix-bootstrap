@@ -1,6 +1,3 @@
-#!/usr/bin/env bash
-set -euo pipefail
-
 GITHUB_USERNAME="Mitchman215"
 GNUPG_DIR="$HOME/.gnupg"
 
@@ -27,7 +24,7 @@ append_if_missing() {
 PINENTRY_PATH=$(which pinentry-curses 2>/dev/null || which pinentry 2>/dev/null || true)
 if [ -z "$PINENTRY_PATH" ]; then
   echo "Error: No pinentry program found. Install gnupg first."
-  exit 1
+  return 1
 fi
 
 append_if_missing "$GNUPG_DIR/gpg-agent.conf" "pinentry-program $PINENTRY_PATH"
@@ -60,7 +57,7 @@ echo ""
 KEYID=$(gpg -k --with-colons | awk -F: '/^pub:/ { print $5; exit }')
 if [ -z "$KEYID" ]; then
   echo "Error: Could not detect key ID after import."
-  exit 1
+  return 1
 fi
 echo "  Key ID: $KEYID"
 
@@ -78,13 +75,16 @@ echo ""
 echo "--- Phase 4: Tethering YubiKey ---"
 read -rp "Plug in your YubiKey and press Enter..."
 
-gpg --card-status > /dev/null 2>&1
+if ! gpg --card-status > /dev/null 2>&1; then
+  echo "Error: Could not detect YubiKey. Make sure it's plugged in."
+  return 1
+fi
 echo "  YubiKey detected"
 
 AUTH_KEYGRIP=$(gpg -K --with-keygrip --with-colons | awk -F: '/^ssb.*:a:/{getline; getline; print $10}')
 if [ -z "$AUTH_KEYGRIP" ]; then
   echo "Error: Could not find authentication subkey keygrip."
-  exit 1
+  return 1
 fi
 
 if grep -qxF "$AUTH_KEYGRIP" "$GNUPG_DIR/sshcontrol" 2>/dev/null; then
@@ -106,8 +106,4 @@ echo "  Testing SSH to GitHub..."
 ssh -T git@github.com 2>&1 || true
 echo ""
 
-echo "=== Bootstrap complete ==="
-echo ""
-echo "You can now clone your private repos. In this shell session, SSH_AUTH_SOCK"
-echo "is already set. For new shells, run:"
-echo "  export SSH_AUTH_SOCK=\$(gpgconf --list-dirs agent-ssh-socket)"
+echo "=== Bootstrap complete. You can now clone repos in this shell. ==="

@@ -12,26 +12,21 @@
       ];
     in
     {
-      apps = forSystems (
+      devShells = forSystems (
         system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
-          bootstrap = pkgs.writeShellApplication {
-            name = "yubikey-bootstrap";
-            runtimeInputs = with pkgs; [
+        in
+        {
+          default = pkgs.mkShell {
+            packages = with pkgs; [
               gnupg
               pinentry-curses
               curl
               openssh
               git
             ];
-            text = builtins.readFile ./bootstrap.sh;
-          };
-        in
-        {
-          default = {
-            type = "app";
-            program = "${bootstrap}/bin/yubikey-bootstrap";
+            shellHook = builtins.readFile ./bootstrap.sh;
           };
         }
       );
