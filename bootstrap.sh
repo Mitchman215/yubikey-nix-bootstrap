@@ -76,6 +76,10 @@ echo ""
 echo "--- Phase 4: Tethering YubiKey ---"
 read -rp "Plug in your YubiKey and press Enter..."
 
+if ! pgrep -x pcscd > /dev/null; then
+  echo "  Starting pcscd..."
+  sudo pcscd
+fi
 gpgconf --kill scdaemon
 if ! gpg --card-status; then
   echo "Error: Could not detect YubiKey. Make sure it's plugged in."

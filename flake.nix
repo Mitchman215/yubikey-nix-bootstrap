@@ -22,6 +22,8 @@
             packages = with pkgs; [
               gnupg
               pinentry-curses
+              pcsclite
+              procps
               curl
               openssh
               git
