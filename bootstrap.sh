@@ -39,11 +39,13 @@ echo ""
 # --- Phase 2: Restart agent and configure environment ---
 echo "--- Phase 2: Restarting GPG agent ---"
 
-export GPG_TTY=$(tty)
+GPG_TTY=$(tty)
+export GPG_TTY
 gpgconf --kill gpg-agent
 gpg-connect-agent /bye > /dev/null 2>&1
 gpg-connect-agent updatestartuptty /bye > /dev/null 2>&1
-export SSH_AUTH_SOCK=$(gpgconf --list-dirs agent-ssh-socket)
+SSH_AUTH_SOCK=$(gpgconf --list-dirs agent-ssh-socket)
+export SSH_AUTH_SOCK
 
 echo "  GPG agent restarted"
 echo "  SSH_AUTH_SOCK=$SSH_AUTH_SOCK"
