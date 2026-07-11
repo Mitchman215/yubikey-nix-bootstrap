@@ -76,13 +76,17 @@ echo ""
 echo "--- Phase 4: Tethering YubiKey ---"
 read -rp "Plug in your YubiKey and press Enter..."
 
-# Ensure pcscd is running (required for scdaemon with disable-ccid)
-if ! systemctl is-active --quiet pcscd 2>/dev/null; then
-  echo "  pcscd is not running. Attempting to start it..."
-  if ! sudo systemctl start pcscd 2>/dev/null; then
-    echo "Error: pcscd service is not available."
-    echo "On NixOS, add 'services.pcscd.enable = true;' to your configuration and run 'sudo nixos-rebuild switch'."
-    return 1
+# Ensure pcscd is running (required for scdaemon with disable-ccid).
+# On macOS the OS provides PC/SC (SmartCardServices) on demand via launchd,
+# so there is no pcscd service to manage.
+if [ "$(uname)" = "Linux" ]; then
+  if ! systemctl is-active --quiet pcscd 2>/dev/null; then
+    echo "  pcscd is not running. Attempting to start it..."
+    if ! sudo systemctl start pcscd 2>/dev/null; then
+      echo "Error: pcscd service is not available."
+      echo "On NixOS, add 'services.pcscd.enable = true;' to your configuration and run 'sudo nixos-rebuild switch'."
+      return 1
+    fi
   fi
 fi
 gpgconf --kill scdaemon

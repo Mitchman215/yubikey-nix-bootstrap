@@ -21,3 +21,19 @@ After bootstrap completes, you're in an interactive shell with everything config
 - [Nix](https://nixos.org/download)
 - A provisioned YubiKey (see the main dotfiles repo for provisioning docs)
 - On NixOS, `services.pcscd.enable = true;` must be set in your configuration (run `sudo nixos-rebuild switch` after adding it)
+
+## Platform notes
+
+### Linux
+
+scdaemon uses nixpkgs' internal CCID driver by default, which conflicts with `pcscd`. The bootstrap writes `disable-ccid` to `scdaemon.conf` to force the PC/SC path, so `pcscd` must be running (hence the NixOS requirement above, and `pcsclite`/`ccid` in the dev shell).
+
+### macOS
+
+Works out of the box; no `pcscd` to manage. nixpkgs builds gnupg with `--disable-ccid-driver`, so scdaemon always uses PC/SC via the system framework (`/System/Library/Frameworks/PCSC.framework/PCSC`), backed by macOS SmartCardServices, which launchd starts on demand. This is the same PC/SC path Yubico recommends for [resolving GPG CCID conflicts](https://support.yubico.com/hc/en-us/articles/4819584884124) on macOS — nixpkgs just does it at build time. The `disable-ccid` line and the `pcsclite`/`ccid` dev-shell packages are inert on macOS but harmless.
+
+If `gpg --card-status` reports "card not present" or "Operation not supported by device", macOS's CryptoTokenKit PIV token is likely holding the card. Disable it and replug:
+
+```bash
+sudo defaults write /Library/Preferences/com.apple.security.smartcard DisabledTokens -array com.apple.CryptoTokenKit.pivtoken
+```
